@@ -20,6 +20,9 @@ def frontpage():
 @app.route('/login', methods = ['POST'])
 def login():
     if request.method == 'POST':
+        cursor.execute("SELECT * FROM Usuarios")
+        for usuario in cursor:
+            print(usuario)
         user = request.json['user']
         contraseña = request.json['password']
         cursor.execute("SELECT * FROM Usuarios WHERE Usuario = " + f"'{user}'")
@@ -54,9 +57,26 @@ def login():
 
 @app.route('/register', methods = ['POST'])
 def register():
-    pass
-
-        
+    if request.method == 'POST':
+        nombre = request.json['name']
+        apellido = request.json['lastname']
+        carnet = int(request.json['carnet'])
+        user = request.json['user']
+        contraseña = request.json['password']
+        try:
+            cursor.execute(f"""INSERT INTO Usuarios (Nombre, Apellido, Usuario, Contraseña, Carné) values('{nombre}','{apellido}','{user}','{contraseña}', {carnet})""")
+            conn.commit()
+            objeto = {
+                'mensaje':'Usuario ingresado exitosamente'
+            }
+            
+            return(jsonify(objeto))
+        except:
+            objeto = {
+                'mensaje': 'El usuario ya existe en la base de datos'
+            }
+            return(jsonify(objeto))
+                
 
 
 if __name__ == "__main__":
