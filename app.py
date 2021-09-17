@@ -24,13 +24,13 @@ def login():
         contraseña = request.json['password']
         cursor.execute("SELECT * FROM Usuarios WHERE Usuario = " + f"'{user}'")
         for usuario in cursor:
-            if usuario[3] == user:
-                if usuario[4] == contraseña:
+            if usuario[2] == user:
+                if usuario[3] == contraseña:
                     objeto = {
                         'mensaje': 'Sesión iniciada con éxito',
-                        'nombre': usuario[1],
-                        'apellido': usuario[2],
-                        'usuario': usuario[3],
+                        'nombre': usuario[0],
+                        'apellido': usuario[1],
+                        'usuario': usuario[2],
                         'exist': True
                     }
                     return(jsonify(objeto))
