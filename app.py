@@ -54,6 +54,7 @@ def login():
             'exist': False
         }
         return(jsonify(objeto))
+        
 
 @app.route('/register', methods = ['POST'])
 def register():
@@ -67,16 +68,55 @@ def register():
             cursor.execute(f"""INSERT INTO Usuarios (Nombre, Apellido, Usuario, Contraseña, Carné) values('{nombre}','{apellido}','{user}','{contraseña}', {carnet})""")
             conn.commit()
             objeto = {
-                'mensaje':'Usuario ingresado exitosamente'
+                'mensaje':'Usuario ingresado exitosamente',
+                'register': True
             }
             
             return(jsonify(objeto))
         except:
             objeto = {
-                'mensaje': 'El usuario ya existe en la base de datos'
+                'mensaje': 'El usuario ya existe en la base de datos',
+                'register': False
             }
             return(jsonify(objeto))
-                
+
+
+@app.route('/forgot_password', methods = ['POST'])
+def forgot_password():
+    if request.method == 'POST':
+        user = request.json['mail']
+        new_password = request.json['newpassword']
+        carnet = int(request.json['carnet'])
+        cursor.execute("SELECT * FROM Usuarios WHERE Usuario = " + f"'{user}'")
+        for usuario in cursor:
+            if usuario[2] == user:
+                if usuario[4] == carnet:
+                    cursor.execute("UPDATE Usuarios set Contraseña = " + f"'{new_password}'" + "WHERE Usuario = " + f"'{user}'")
+                    conn.commit()
+                    objeto = {
+                        'mensaje': 'La contraseña se ha modificado exitosamente',
+                        'modified': True
+                    }
+                    return(jsonify(objeto))
+                else:
+                    objeto = {
+                        'mensaje': 'El número de carnet es incorrecto',
+                        'modified': False
+                    }
+                    return(jsonify(objeto))
+            else:
+                objeto = {
+                    'mensaje':'El nombre de usuario no se ha encontrado o no existe',
+                    'modified': False
+                }
+                return(jsonify(objeto))
+        objeto = {
+            'mensaje': 'El correo electrónico es incorrecto o no existe',
+            'modified': False
+        }
+        return(jsonify(objeto))
+
+
 
 
 if __name__ == "__main__":
