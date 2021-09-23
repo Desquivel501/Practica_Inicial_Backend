@@ -4,14 +4,12 @@ import json
 import pyodbc
 
 
-
-cursor = conn.cursor()
 app = Flask(__name__)
 CORS(app)
 
 
 conn = pyodbc.connect('Driver={SQL Server};'
-'Server=DESKTOP-0DSCFJO\SQLEXPRESS;'
+'Server=DESKTOP-D3E52S7\SQLEXPRESS;'
 'Database=mydatabase;''Trusted_Connection=yes;')
 
 app = Flask(__name__)
@@ -136,7 +134,8 @@ def getCatedraticos():
 @app.route('/cursos', methods = ['GET'])
 def getCursos():
 
-    cursor.execute('SELECT * FROM Cursos;')
+    cursor.execute('SELECT * FROM Cursos')
+
     Datos=[]
     for row in cursor:
         objeto = {
@@ -144,6 +143,7 @@ def getCursos():
         }
         Datos.append(objeto)
     return jsonify(Datos)
+
 
 @app.route("/publicacion", methods=["POST"])
 def crearPublicacion():
@@ -356,11 +356,12 @@ def obtener_cursos():
 
     cursos = []
     carnet = request.json['carnet']
-    cursor.execute("SELECT * FROM cursosAprobados WHERE Carnet = " + f"'{carnet}';")
+    sql = f"SELECT * FROM cursosAprobados WHERE Carnet = '{carnet}'"
+    cursor.execute(sql)
     
-    for curso in cursor:
+    for row in cursor:
         objeto = {
-            'Nombre': curso[2]
+            'Nombre': row[2]
         }
         cursos.append(objeto)
     return(jsonify(cursos))
