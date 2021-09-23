@@ -14,11 +14,7 @@ conn = pyodbc.connect('Driver={SQL Server};'
                       'Trusted_Connection=yes;')
 
 
-
 cursor = conn.cursor()
-
-
-
 
 
 app = Flask(__name__)
@@ -154,14 +150,155 @@ def getPublicacion():
     for row in cursor:
         objeto = {
             "PostID":row[0],
-            "CarnetUsuario":row[1],
-            "NombreUsuario":row[2],
+            "CarnetUsuario":row[2],
+            "NombreUsuario":row[1],
             "NombreCurso":row[3],
             "NombreCatedratico":row[4],
             "Titulo":row[5],
             "Contenido":row[6]
         }
         Datos.append(objeto)
+    return jsonify(Datos)
+
+@app.route('/publicacion/filtro/<string:id>', methods = ['GET'])
+def getPublicacionFiltro(id):
+    filtro = id
+    
+    Datos=[]
+    if filtro == "1":
+        comando = 'SELECT * FROM mydatabase.dbo.Publicaciones WHERE NombreCurso IS NOT NULL'
+    elif filtro == "2":
+        comando = 'SELECT * FROM mydatabase.dbo.Publicaciones WHERE NombreCatedratico IS NOT NULL'
+    else:
+        comando = 'SELECT * FROM mydatabase.dbo.Publicaciones'
+
+    cursor.execute(comando)
+    for row in cursor:
+        objeto = {
+            "PostID":row[0],
+            "CarnetUsuario":row[2],
+            "NombreUsuario":row[1],
+            "NombreCurso":row[3],
+            "NombreCatedratico":row[4],
+            "Titulo":row[5],
+            "Contenido":row[6]
+        }
+        Datos.append(objeto)
+    return jsonify(Datos)
+
+
+@app.route('/publicacion/<string:id>', methods = ['GET'])
+def getPublicacionIndividual(id):
+
+    cursor.execute('SELECT * FROM mydatabase.dbo.Publicaciones')
+    Datos=[]
+    print(id)
+    for row in cursor:
+
+        # objeto = {"Mensaje":"No se encontro el post"}
+        
+        if int(row[0]) == int(id):
+            objeto = {
+                "PostID":row[0],
+                "CarnetUsuario":row[2],
+                "NombreUsuario":row[1],
+                "NombreCurso":row[3],
+                "NombreCatedratico":row[4],
+                "Titulo":row[5],
+                "Contenido":row[6],
+                "Mensaje":"Done"
+            } 
+            
+    return jsonify(objeto)
+
+@app.route("/comentario", methods=["POST"])
+def crearComentario():
+    nombreUsuario = request.json['nombreUsuario']
+    contenido = request.json['contenido']
+    postId = request.json['postId']
+
+    sql = "INSERT INTO Comentarios (NombreUsuario, Contenido, PostID) VALUES (?, ?, ?)"
+    val = (nombreUsuario, contenido, postId)
+    cursor.execute(sql,val)
+    conn.commit()
+    
+    return jsonify({"Mensaje":"Creado"})
+
+
+@app.route("/comentario/<string:id>", methods=["GET"])
+def getComentarios(id):
+
+    cursor.execute(f"SELECT * FROM mydatabase.dbo.Comentarios WHERE PostID={id}")
+    datos = []
+    found = False
+    for row in cursor:
+        print (row)
+        found = True
+        objeto = {
+                "CommentID":row[0],
+                "NombreUsuario":row[1],
+                "Contenido":row[2],
+                "PostID":row[3],
+                "Mensaje":"Existe"
+            } 
+        datos.append(objeto)
+    
+
+    return jsonify(datos)
+
+
+@app.route("/buscar/<string:carnet>", methods=["GET"])
+def buscarUsuarios(carnet):
+
+    cursor.execute(f"SELECT * FROM mydatabase.dbo.Usuarios WHERE Carnet={carnet}")
+    found = False
+    for row in cursor:
+        found = True
+        objeto = {
+                "Nombre":row[0],
+                "Apellido":row[1],
+                "Carnet":row[2],
+                "Contraseña":row[3],
+                "Correo":row[4],
+                "Mensaje":"Existe"
+        } 
+    if not found:
+        objeto = {"Mensaje":"No Existe"}
+
+    return jsonify(objeto)
+
+
+@app.route('/publicacion/buscar/<string:cadena>', methods = ['GET'])
+def getPublicacionBusqueda(cadena):
+
+    cursor.execute('SELECT * FROM mydatabase.dbo.Publicaciones')
+    Datos=[]
+    print(id)
+    
+    for row in cursor:
+
+        nombreCatedratico = str(row[4]).lower()
+        nombreCurso = str(row[3]).lower()
+        found = False
+        
+        if nombreCurso.find(cadena.lower()) >= 0:
+            found = True
+            
+        if nombreCatedratico.find(cadena.lower()) >= 0:
+            found = True
+
+        if found or (cadena is None):
+            objeto = {
+                "PostID":row[0],
+                "CarnetUsuario":row[2],
+                "NombreUsuario":row[1],
+                "NombreCurso":row[3],
+                "NombreCatedratico":row[4],
+                "Titulo":row[5],
+                "Contenido":row[6],
+            } 
+            Datos.append(objeto)
+            
     return jsonify(Datos)
 
     
