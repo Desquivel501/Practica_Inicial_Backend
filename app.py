@@ -9,14 +9,18 @@ CORS(app)
 
 
 conn = pyodbc.connect('Driver={SQL Server};'
-'Server=DESKTOP-D3E52S7\SQLEXPRESS;'
+'Server=DESKTOP-0DSCFJO\SQLEXPRESS;'
 'Database=mydatabase;''Trusted_Connection=yes;')
+
+conn2 = pyodbc.connect('Driver={SQL Server};'
+'Server=DESKTOP-0DSCFJO\SQLEXPRESS;'
+'Database=anotherdatabase;''Trusted_Connection=yes;')
 
 app = Flask(__name__)
 CORS(app)
 
 cursor = conn.cursor()
-
+cursor2 = conn2.cursor()
 
 @app.route('/', methods = ['GET'])
 def frontpage():
@@ -339,16 +343,11 @@ def getPublicacionBusqueda(cadena):
 def agregar_curso():
     carnet = request.json['carnet']
     curso = request.json['curso']
-    try:
-        cursor.execute(f"INSERT INTO cursosAprobados (Carnet, Curso) VALUES('{carnet}', '{curso}');")
-        conn.commit()
-        objeto = {
-            'mensaje':'Curso agregado exitosamente'
-        }
-    except:
-        objeto = {
-            'mensaje':'Ocurrió un error al momento de agregar el curso, por favor intente de nuevo'
-        }
+    cursor2.execute(f"INSERT INTO cursosAprobados (Carnet, Curso) VALUES('{carnet}', '{curso}');")
+    conn2.commit()
+    objeto = {
+        'mensaje':'Curso agregado exitosamente'
+    }
     return(jsonify(objeto))
 
 @app.route('/obtener_cursos', methods = ['POST'])
@@ -357,9 +356,9 @@ def obtener_cursos():
     cursos = []
     carnet = request.json['carnet']
     sql = f"SELECT * FROM cursosAprobados WHERE Carnet = '{carnet}'"
-    cursor.execute(sql)
+    cursor2.execute(sql)
     
-    for row in cursor:
+    for row in cursor2:
         objeto = {
             'Nombre': row[2]
         }
